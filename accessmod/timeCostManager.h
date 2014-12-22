@@ -28,9 +28,9 @@ const float e=2.71828;
 
 
 /* flat values (used in formula to get initial power for given velocity).*/
-const  float betaFlat=0;
-const  float CrVnFlat=CrV;
-const  float CrVFlat=CrV;
+float betaFlat=0;
+float CrVnFlat=CrV;
+float CrVFlat=CrV;
 
 
 
