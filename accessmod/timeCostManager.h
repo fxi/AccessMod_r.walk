@@ -11,19 +11,19 @@
  *-----------------------------------------------------------------*/
 
 /* Define constant and variables */
-#define float W 0 /* wind speed */
-#define float Hnn 350 /* Elevation above sea */
-#define float Tc 20  /* external temperature influence air density */
-#define float mbike 12 /* mass of bike */
-#define float mrider 80 /* mass of rider */
-#define float CdA 0.4 /*Effective Drag Area */
-#define float Cr 0.008 /* Rolling resistance coefficient (between 0.0025 and 0.008) */
-#define float CrV 0.2 /* approximated to 0.1 */
-#define float Cm 1.09 /* between 1.03 and 1.09 */
-#define float rho0 1.225 /* air density at sea level, 0°C, kg/m3 */
-#define float p0 101325 /* air pressur at sea level, 0°C,Pa */
-#define float g 9.81 /* m/s2 */
-#define float e 2.71828
+#define  W 0 /* wind speed */
+#define  Hnn 350 /* Elevation above sea */
+#define  Tc 20  /* external temperature influence air density */
+#define  mbike 12 /* mass of bike */
+#define  mrider 80 /* mass of rider */
+#define  CdA 0.4 /*Effective Drag Area */
+#define  Cr 0.008 /* Rolling resistance coefficient (between 0.0025 and 0.008) */
+#define  CrV 0.2 /* approximated to 0.1 */
+#define  Cm 1.09 /* between 1.03 and 1.09 */
+#define  rho0 1.225 /* air density at sea level, 0°C, kg/m3 */
+#define  p0 101325 /* air pressur at sea level, 0°C,Pa */
+#define  g 9.81 /* m/s2 */
+#define  e 2.71828
 
 
 
