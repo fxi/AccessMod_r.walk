@@ -27,31 +27,31 @@
 
 
 
-/* flat values (used in formula to get initial power for given velocity).*/
+/* flat values (used in formula to get initial power for given speed).*/
 float betaFlat=0;
 float CrVnFlat=CrV;
 float CrVFlat=CrV;
 
 
 
-/* Actual function to get final velocity. Velocity (expected velocity on flat) and slope*/
-double velocBicycle(float veloc, float slope)
+/* Actual function to get final speed. Speed (expected speed on flat) and slope*/
+double speedBicycle(float speed, float slope)
 { 
   double a,b,c,x0,x1,x2 ;/* var in cubic eq..*/
   int roots; /*ouput roots*/
-  double velocFinal; /*final velocity after slope and phys. vars. */
+  double speedFinal; /*final speed after slope and phys. vars. */
   float power,P ;/* Power in W */
   float Frg; /*rol friction*/
   /* rolling friction on a flat surface */
   float FrgFlat=g*(mbike+mrider)*(Cr*cos(betaFlat)+sin(betaFlat));
-  veloc = veloc/3.6; /* value in meter and second*/
+  speed = speed/3.6; /* value in meter and second*/
   /* Temperature in deg. kelvin ! */
   float T=Tc+273.15; 
 
   /* air density via barometric formula  */
   float rho=rho0*(373/T)*pow(e,(-rho0*g*(Hnn/p0)));
   /* power needed for a given base speed*/
-  P = Cm*veloc*(CdA*(rho/2)*pow(veloc+W,2)+FrgFlat+veloc+CrVnFlat);
+  P = Cm*speed*(CdA*(rho/2)*pow(speed+W,2)+FrgFlat+speed+CrVnFlat);
   /*slope in radian*/  
   float beta=atan(slope); 
   /**/
@@ -62,12 +62,12 @@ double velocBicycle(float veloc, float slope)
   a=(W+(CrVn/(CdA*rho)));
   b=pow(W,2)+((2*Frg)/(CdA*rho));
   c=-((2*P)/(Cm*CdA*rho));
-  /* solve equation with gsl */
+  /* solve equation with gsl*/
   roots = gsl_poly_solve_cubic(a,b,c,&x0,&x1,&x2);
   /* get the absolute speed in km/h. Why does the function return a negative value for negative slope ??  */
-  /*velocFinal=x0*3.6;*/
-  velocFinal=fabs(x0*3.6);
-  return velocFinal;
+  /*speedFinal=x0*3.6;*/
+  speedFinal=fabs(x0*3.6);
+  return speedFinal;
 }
 
 /*------------------------------------------------------------------
@@ -75,18 +75,18 @@ double velocBicycle(float veloc, float slope)
  *
  * Tobler hiking function:
  * tobler is based on a speed of 6 km/h. 
- * here, we want to set another base velocity: veloc.
+ * here, we want to set another base speed: speed.
  * So we extract coefficient to allow a modified version of tobler's formula.
  * see http://www.kreuzotter.de/english/espeed.htm  
  * constant to  put in an external file after developementi 
  *-----------------------------------------------------------------*/
-double velocWalk(double veloc, double slope)
+double speedWalk(double speed, double slope)
 {
   /* use fabs instead of abs...*/
-  double topVelocity,velocFinal,testVal;
-  topVelocity = veloc/exp(-0.175); /* -0.175 = -3.5*0.05 */
-  velocFinal = exp(-3.5*fabs(slope+0.05))*topVelocity;
-  return velocFinal;
+  double topSpeed,speedFinal,testVal;
+  topSpeed = speed/exp(-0.175); /* -0.175 = -3.5*0.05 */
+  speedFinal = exp(-3.5*fabs(slope+0.05))*topSpeed;
+  return speedFinal;
 };
 
 /*-------------------------------------------------------------------             
@@ -97,10 +97,10 @@ double velocWalk(double veloc, double slope)
  * The bicycle function could apply with other constants of total weight, drag area, resistance,...
  *   
  *-----------------------------------------------------------------*/
-double velocMotor(double veloc, double slope)
+double speedMotor(double speed, double slope)
 {
-  double velocFinal = veloc;
-  return velocFinal;
+  double speedFinal = speed;
+  return speedFinal;
 };
 
 
@@ -109,22 +109,22 @@ double velocMotor(double veloc, double slope)
 /*-------------------------------------------------------------------             
  *              modSwitcher
  *  switch through mod of one cell to determine
- * the appropriate function to use for final velocity.
+ * the appropriate function to use for final speed.
  *
  *-----------------------------------------------------------------*/
-double modSwitcher(int mod, double veloc, double slope)
+double modSwitcher(int mod, double speed, double slope)
 {
   double v;
   switch(mod)
   {
     case 1:
-      v=velocWalk(veloc,slope);
+      v=speedWalk(speed,slope);
       break;
     case 2:
-      v=velocBicycle(veloc,slope);
+      v=speedBicycle(speed,slope);
       break;
     case 3:
-      v=velocMotor(veloc,slope);
+      v=speedMotor(speed,slope);
       break;
     default: 
       v=0;
@@ -136,59 +136,59 @@ double modSwitcher(int mod, double veloc, double slope)
  *              costManager
  *          -- main function --
  * Check for the group of cells (2 if knightmove is false, 4 otherwise) to
- * extract the mode of transportation and velocity from the velocity map 
+ * extract the mode of transportation and speed from the speed map 
  * ------------- Value of mode 
- * veloc map is encoded by step of thousend
+ * speed map is encoded by step of thousand
  * 1 = walking 
  * 2 = bicycle
  * 3 = motorized 
  * ------------- Additional informations
- * modVelocAdj1-3 = extracted from velocity map. E.g. 2004 -> 2 is for bicycle, 4 the speed in kmh
+ * modSpeedAdj1-3 = extracted from speed map. E.g. 2004 -> 2 is for bicycle, 4 the speed in kmh
  * slope = slope in % (r.walk :: check_dtm)
  * dist = distance between cells (r.walk :: E,W,S,N_fac or Diag_fac or V_DIAG_fac ) 
  * total_reviewed = if knight's move, 16, else 8. (r.walk total_reviewed)
  *-----------------------------------------------------------------*/
-double costManager(int modVeloc,int modVelocAdj1,int modVelocAdj2,int modVelocAdj3, double slope, double dist, int total_reviewed,int returnPath)
+double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAdj3, double slope, double dist, int total_reviewed,int returnPath)
 {
 
   /* if return path == true, slope is negative*/
 
   if(returnPath==1) slope = -slope;
   /* current cell values */
-  int mod       = floor(modVeloc/1000);
-  int veloc     = round(modVeloc-mod*1000);
+  int mod       = floor(modSpeed/1000);
+  int speed     = round(modSpeed-mod*1000);
   /* adjacent cell mod of transportations*/
-  int modAdj1   = floor(modVelocAdj1/1000);
-  int modAdj2   = floor(modVelocAdj2/1000);
-  int modAdj3   = floor(modVelocAdj3/1000);
-  /* adjacent cell velocity in km/h */
-  int velocAdj1 = round(modVelocAdj1-modAdj1*1000);
-  int velocAdj2 = round(modVelocAdj2-modAdj2*1000);
-  int velocAdj3 = round(modVelocAdj3-modAdj3*1000);
+  int modAdj1   = floor(modSpeedAdj1/1000);
+  int modAdj2   = floor(modSpeedAdj2/1000);
+  int modAdj3   = floor(modSpeedAdj3/1000);
+  /* adjacent cell speed in km/h */
+  int speedAdj1 = round(modSpeedAdj1-modAdj1*1000);
+  int speedAdj2 = round(modSpeedAdj2-modAdj2*1000);
+  int speedAdj3 = round(modSpeedAdj3-modAdj3*1000);
  
   /* output var */
-  double velocCurrent;
-  double velocFinal;
+  double speedCurrent;
+  double speedFinal;
   double costTimeFinal;
-  /* get velocity for the present cell according to its mode,velocity and slope*/
-  velocCurrent = modSwitcher(mod,veloc,slope);
+  /* get speed for the present cell according to its mode,speed and slope*/
+  speedCurrent = modSwitcher(mod,speed,slope);
   /*case of knight's move (3 adjacent cells) there is 4 cell to compute.
-   * TODO check for equality between cells mode AND velocity to avoid recalculation 
-   * at every step. Caution : in the worst case, all 4 cells have different velocity
+   * TODO check for equality between cells mode AND speed to avoid recalculation 
+   * at every step. Caution : in the worst case, all 4 cells have different speed
    * AND mode of transportation. A lot of possibilities. */
   if(total_reviewed==16){
-    velocFinal=(
-        velocCurrent+
-        modSwitcher(modAdj1,velocAdj1,slope)+
-        modSwitcher(modAdj2,velocAdj2,slope)+
-        modSwitcher(modAdj3,velocAdj3,slope)
+    speedFinal=(
+        speedCurrent+
+        modSwitcher(modAdj1,speedAdj1,slope)+
+        modSwitcher(modAdj2,speedAdj2,slope)+
+        modSwitcher(modAdj3,speedAdj3,slope)
         )/4; 
   }else{
-    velocFinal=(velocCurrent+modSwitcher(modAdj1,velocAdj1,slope))/2; 
+    speedFinal=(speedCurrent+modSwitcher(modAdj1,speedAdj1,slope))/2; 
   };
 
   /* Return cost (s) for the provided distance*/
-  costTimeFinal=(1/(velocFinal/3.6))*dist;
+  costTimeFinal=(1/(speedFinal/3.6))*dist;
   return costTimeFinal;
 }
 
