@@ -1,13 +1,15 @@
 # r.walk.accessmod
 
-This is an attempt to modify GRASS gis r.walk to accept other anisotropic formulas : tobler hiking function and bicycle function.
+This is an attempt to modify GRASS gis `r.walk` to accept other anisotropic formulas : tobler hiking function and bicycle function. This is an early experimental work. 
 
-In this version, the module accepts speed map as friction map input. 
+Based on `r.walk`  provided in grass 7.0 beta 3. There is little chance that this module works with another version of grass.  
+
+In this version, the module takes speed map as friction map input.  
 
 The speed map should be reclassed in three main categories, depending of the mode of transportation :
 
 - 1000 : walking  (tobler's hiking formula) 
-- 2000 : bicycling (kreuzotter formula) 
+- 2000 : bicycling (kreuzotter formula. Takes in account elevation, air resistance, weight... and much more) 
 - 3000 : other (not influenced by the slope) 
 
 For each class, the base speed on flat surface is added to each categories. E.g.
@@ -17,10 +19,9 @@ For each class, the base speed on flat surface is added to each categories. E.g.
 - 1002 = walking model for a base speed of 2 km/h, with anisotropic analysis.
 
 
-
 compilation on linux, e.g.
 ```sh 
-sudo make MODULE_TOPDIR=/usr/local/grass-7.0.0beta/ 
+sudo make MODULE_TOPDIR=/usr/local/grass-7.0.0beta3 
 ```
 
 compilation on mac, e.g. with hombrew grass-70
