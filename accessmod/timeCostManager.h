@@ -148,8 +148,12 @@ double modSwitcher(int mod, double veloc, double slope)
  * dist = distance between cells (r.walk :: E,W,S,N_fac or Diag_fac or V_DIAG_fac ) 
  * total_reviewed = if knight's move, 16, else 8. (r.walk total_reviewed)
  *-----------------------------------------------------------------*/
-double costManager(int modVeloc,int modVelocAdj1,int modVelocAdj2,int modVelocAdj3, double slope, double dist, int total_reviewed)
+double costManager(int modVeloc,int modVelocAdj1,int modVelocAdj2,int modVelocAdj3, double slope, double dist, int total_reviewed,int returnPath)
 {
+
+  /* if return path == true, slope is negative*/
+
+  if(returnPath==1) slope = -slope;
   /* current cell values */
   int mod       = floor(modVeloc/1000);
   int veloc     = round(modVeloc-mod*1000);

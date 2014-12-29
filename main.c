@@ -1,4 +1,4 @@
-/****************************************************************************
+ /****************************************************************************
  *
  * MODULE:       r.walk
  * AUTHOR(S):    Based on r.cost written by :
@@ -152,7 +152,8 @@ int main(int argc, char *argv[])
   double a, b, c, d, lambda, slope_factor;
   int srows, scols;
   int total_reviewed;
-  int velocityMap; 
+  int speedMap; /* using cell speed map  */ 
+  int returnPath; /* from or toward path  */
   int keep_nulls = 1;
   int start_with_raster_vals = 1;
   int neighbor;
@@ -161,7 +162,7 @@ int main(int argc, char *argv[])
   long n_processed = 0;
   long total_cells;
   struct GModule *module;
-  struct Flag *flag2, *flag3, *flag4, *flag5, *flag6;
+  struct Flag *flag2, *flag3, *flag4, *flag5, *flag6, *flag7;
   struct Option *opt1, *opt2, *opt3, *opt4, *opt5, *opt6, *opt7, *opt8;
   struct Option *opt9, *opt10, *opt11, *opt12, *opt13, *opt14, *opt15;
   struct cost *pres_cell;
@@ -332,7 +333,13 @@ int main(int argc, char *argv[])
   flag6 = G_define_flag();
   flag6->key = 's';
   flag6->description =
-    _("Use velocity map (km/h) instead of friction map");
+    _("Use speed by cells map (km/h) instead of friction map");
+
+ flag7 = G_define_flag();
+  flag7->key = 't';
+  flag7->description =
+    _("Inverse slope : cost toward point instead of from point");
+
 
   /* Parse options */
   if (G_parser(argc, argv))
@@ -366,11 +373,21 @@ int main(int argc, char *argv[])
   else
     total_reviewed = 8;
 
-  /* velocity map ?*/
+  /* use cell speed  map ?*/
   if (flag6->answer)
-    velocityMap=1;
+    speedMap=1;
   else
-    velocityMap=0;
+    speedMap=0;
+
+  
+  /* toward or from ?*/
+  if (flag7->answer)
+    returnPath=1;
+  else
+    returnPath=0;
+
+
+
 
   keep_nulls = flag3->answer;
 
@@ -1084,11 +1101,10 @@ int main(int argc, char *argv[])
           W_dtm = costs.dtm;
           W_cost = costs.cost_in;
           if (Rast_is_d_null_value(&W_cost))
-            continue;
+            continue; 
           check_dtm = (W_dtm - my_dtm) / EW_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
-
+          /* speedMap == 0 -> langmuir else costManager*/
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(W_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1099,10 +1115,10 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (EW_fac * a) +
               lambda * fcost_cost * EW_fac;
-        }else{
-         /*total cost = costManager(modVeloc, modVelocAdj1, modVelocAdj2, modVelocAdj3, slope, dist, total_reviewed) */
- min_cost =
-              pres_cell->min_cost + costManager(my_cost,W_cost,0,0,check_dtm,EW_fac,total_reviewed); 
+          }else{
+            /*total cost = costManager(modVeloc, modVelocAdj1, modVelocAdj2, modVelocAdj3, slope, dist, total_reviewed) */
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,W_cost,0,0,check_dtm,EW_fac,total_reviewed,returnPath); 
           };
           break;
 
@@ -1111,9 +1127,8 @@ int main(int argc, char *argv[])
           E_cost = costs.cost_in;
           if (Rast_is_d_null_value(&E_cost))
             continue;
-          check_dtm = (E_dtm - my_dtm) / EW_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+           check_dtm = (E_dtm - my_dtm) / EW_fac;
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(E_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1124,11 +1139,10 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (EW_fac * a) +
               lambda * fcost_cost * EW_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else { 
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,E_cost,0,0,check_dtm,EW_fac,total_reviewed); 
-          
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,E_cost,0,0,check_dtm,EW_fac,total_reviewed,returnPath); 
+
           };
           break;
         case 3:
@@ -1136,9 +1150,8 @@ int main(int argc, char *argv[])
           N_cost = costs.cost_in;
           if (Rast_is_d_null_value(&N_cost))
             continue;
-          check_dtm = (N_dtm - my_dtm) / NS_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+           check_dtm = (N_dtm - my_dtm) / NS_fac;
+         if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(N_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1149,10 +1162,9 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (NS_fac * a) +
               lambda * fcost_cost * NS_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else{
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,N_cost,0,0,check_dtm,NS_fac,total_reviewed); 
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,N_cost,0,0,check_dtm,NS_fac,total_reviewed,returnPath); 
           };
           break;
         case 4:
@@ -1161,8 +1173,7 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&S_cost))
             continue;
           check_dtm = (S_dtm - my_dtm) / NS_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(S_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1173,12 +1184,10 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (NS_fac * a) +
               lambda * fcost_cost * NS_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else{      
-          
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,S_cost,0,0,check_dtm,NS_fac,total_reviewed); 
-          
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,S_cost,0,0,check_dtm,NS_fac,total_reviewed,returnPath); 
+
           };
 
           break;
@@ -1188,8 +1197,7 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&NW_cost))
             continue;
           check_dtm = (NW_dtm - my_dtm) / DIAG_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(NW_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1200,11 +1208,10 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (DIAG_fac * a) +
               lambda * fcost_cost * DIAG_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else{
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,NW_cost,0,0,check_dtm,DIAG_fac,total_reviewed); 
-          
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,NW_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath); 
+
           };
           break;
         case 6:
@@ -1213,8 +1220,7 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&NE_cost))
             continue;
           check_dtm = (NE_dtm - my_dtm) / DIAG_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(NE_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1225,10 +1231,9 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (DIAG_fac * a) +
               lambda * fcost_cost * DIAG_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else{
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,NE_cost,0,0,check_dtm,DIAG_fac,total_reviewed); 
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,NE_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath); 
           };
           break;
         case 7:
@@ -1237,8 +1242,8 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&SE_cost))
             continue;
           check_dtm = (SE_dtm - my_dtm) / DIAG_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+          /*Case of aitken langmuir (speedMap == 0)*/
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(SE_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1249,10 +1254,9 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (DIAG_fac * a) +
               lambda * fcost_cost * DIAG_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else{
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,SE_cost,0,0,check_dtm,DIAG_fac,total_reviewed); 
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,SE_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath); 
           };
 
           break;
@@ -1262,8 +1266,8 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&SW_cost))
             continue;
           check_dtm = (SW_dtm - my_dtm) / DIAG_fac;
-          /*Case of aitken langmuir (velocitymap == 0)*/
-          if(velocityMap == 0){ 
+          /*Case of aitken langmuir (speedMap == 0)*/
+          if(speedMap == 0){ 
             if (check_dtm >= 0)
               fcost_dtm = (double)(SW_dtm - my_dtm) * b;
             else if (check_dtm < (slope_factor))
@@ -1274,10 +1278,9 @@ int main(int argc, char *argv[])
             min_cost =
               pres_cell->min_cost + fcost_dtm + (DIAG_fac * a) +
               lambda * fcost_cost * DIAG_fac;
-            /* Case of velocity Map and less than 10 km/h : walking function.*/
           }else{
-           min_cost =
-              pres_cell->min_cost + costManager(my_cost,SW_cost,0,0,check_dtm,DIAG_fac,total_reviewed);  
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,SW_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath);  
           }; 
           break;
         case 9:
@@ -1286,17 +1289,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&NNW_cost))
             continue;
           check_dtm = (NNW_dtm - my_dtm) / V_DIAG_fac;
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(NNW_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(NNW_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(NNW_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(N_cost + NW_cost + NNW_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
-            lambda * fcost_cost * V_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(NNW_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(NNW_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(NNW_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(N_cost + NW_cost + NNW_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
+              lambda * fcost_cost * V_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,N_cost,NW_cost,NNW_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 10:
           NNE_dtm = costs.dtm;
@@ -1304,19 +1312,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&NNE_cost))
             continue;
           check_dtm = ((NNE_dtm - my_dtm) / V_DIAG_fac);
-
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(NNE_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(NNE_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(NNE_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(N_cost + NE_cost + NNE_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
-            lambda * fcost_cost * V_DIAG_fac;
-
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(NNE_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(NNE_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(NNE_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(N_cost + NE_cost + NNE_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
+              lambda * fcost_cost * V_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,N_cost,NE_cost,NNE_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 11:
           SSE_dtm = costs.dtm;
@@ -1324,18 +1335,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&SSE_cost))
             continue;
           check_dtm = (SSE_dtm - my_dtm) / V_DIAG_fac;
-
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(SSE_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(SSE_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(SSE_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(S_cost + SE_cost + SSE_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
-            lambda * fcost_cost * V_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(SSE_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(SSE_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(SSE_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(S_cost + SE_cost + SSE_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
+              lambda * fcost_cost * V_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,S_cost,SE_cost,SSE_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 12:
           SSW_dtm = costs.dtm;
@@ -1343,18 +1358,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&SSW_cost))
             continue;
           check_dtm = (SSW_dtm - my_dtm) / V_DIAG_fac;
-
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(SSW_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(SSW_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(SSW_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(S_cost + SW_cost +	SSW_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
-            lambda * fcost_cost * V_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(SSW_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(SSW_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(SSW_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(S_cost + SW_cost +	SSW_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (V_DIAG_fac * a) +
+              lambda * fcost_cost * V_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,S_cost,SW_cost,SSW_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 13:
           WNW_dtm = costs.dtm;
@@ -1362,18 +1381,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&WNW_cost))
             continue;
           check_dtm = (WNW_dtm - my_dtm) / H_DIAG_fac;
-
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(WNW_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(WNW_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(WNW_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(W_cost + NW_cost + WNW_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
-            lambda * fcost_cost * H_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(WNW_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(WNW_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(WNW_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(W_cost + NW_cost + WNW_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
+              lambda * fcost_cost * H_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,W_cost,NW_cost,WNW_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 14:
           ENE_dtm = costs.dtm;
@@ -1381,18 +1404,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&ENE_cost))
             continue;
           check_dtm = (ENE_dtm - my_dtm) / H_DIAG_fac;
-
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(ENE_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(ENE_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(ENE_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(E_cost + NE_cost + ENE_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
-            lambda * fcost_cost * H_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(ENE_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(ENE_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(ENE_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(E_cost + NE_cost + ENE_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
+              lambda * fcost_cost * H_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,E_cost,NE_cost,ENE_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 15:
           ESE_dtm = costs.dtm;
@@ -1400,18 +1427,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&ESE_cost))
             continue;
           check_dtm = (ESE_dtm - my_dtm) / H_DIAG_fac;
-
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(ESE_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(ESE_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(ESE_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(E_cost + SE_cost + ESE_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
-            lambda * fcost_cost * H_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(ESE_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(ESE_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(ESE_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(E_cost + SE_cost + ESE_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
+              lambda * fcost_cost * H_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,E_cost,SE_cost,ESE_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
         case 16:
           WSW_dtm = costs.dtm;
@@ -1419,17 +1450,22 @@ int main(int argc, char *argv[])
           if (Rast_is_d_null_value(&WSW_cost))
             continue;
           check_dtm = (WSW_dtm - my_dtm) / H_DIAG_fac;
-          if (check_dtm >= 0)
-            fcost_dtm = (double)(WSW_dtm - my_dtm) * b;
-          else if (check_dtm < (slope_factor))
-            fcost_dtm = (double)(WSW_dtm - my_dtm) * d;
-          else
-            fcost_dtm = (double)(WSW_dtm - my_dtm) * c;
-          fcost_cost =
-            (double)(W_cost + SW_cost +	WSW_cost + my_cost) / 4.0;
-          min_cost =
-            pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
-            lambda * fcost_cost * H_DIAG_fac;
+          if(speedMap == 0){ 
+            if (check_dtm >= 0)
+              fcost_dtm = (double)(WSW_dtm - my_dtm) * b;
+            else if (check_dtm < (slope_factor))
+              fcost_dtm = (double)(WSW_dtm - my_dtm) * d;
+            else
+              fcost_dtm = (double)(WSW_dtm - my_dtm) * c;
+            fcost_cost =
+              (double)(W_cost + SW_cost +	WSW_cost + my_cost) / 4.0;
+            min_cost =
+              pres_cell->min_cost + fcost_dtm + (H_DIAG_fac * a) +
+              lambda * fcost_cost * H_DIAG_fac;
+          }else{
+            min_cost =
+              pres_cell->min_cost + costManager(my_cost,W_cost,SW_cost,WSW_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+          }; 
           break;
       }
 
