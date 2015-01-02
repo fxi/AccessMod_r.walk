@@ -170,6 +170,13 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
   double speedCurrent;
   double speedFinal;
   double costTimeFinal;
+  int maxVal;
+
+  /*maxVal is the maximum time allowed for crossing a cell : 18.2 hour 
+   * it's set to avoid to much depth in final map, e.g. in case of dividing by a speed of zero..*/
+
+  maxVal=65535; /* max value in 16 bit map 2^16-1*/
+
   /* get speed for the present cell according to its mode,speed and slope*/
   speedCurrent = modSwitcher(mod,speed,slope);
   /*case of knight's move (3 adjacent cells) there is 4 cell to compute.
@@ -188,7 +195,9 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
   };
 
   /* Return cost (s) for the provided distance*/
-  costTimeFinal=(1/(speedFinal/3.6))*dist;
+  /* To be checked : round value to have total travel cost in integer of a second */
+  costTimeFinal=round((1/(speedFinal/3.6))*dist);
+if(costTimeFinal>maxVal){costTimeFinal=maxVal;};/* max value allowed by 16 bit map (2^16-1)*/
   return costTimeFinal;
 }
 
