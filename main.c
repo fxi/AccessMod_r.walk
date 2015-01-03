@@ -1118,7 +1118,7 @@ int main(int argc, char *argv[])
           }else{
             /*total cost = costManager(modVeloc, modVelocAdj1, modVelocAdj2, modVelocAdj3, slope, dist, total_reviewed) */
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,W_cost,0,0,check_dtm,EW_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,W_cost,0,0,check_dtm,EW_fac,total_reviewed,returnPath,dnullval); 
           };
           break;
 
@@ -1141,7 +1141,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * EW_fac;
           }else { 
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,E_cost,0,0,check_dtm,EW_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,E_cost,0,0,check_dtm,EW_fac,total_reviewed,returnPath,dnullval); 
 
           };
           break;
@@ -1164,7 +1164,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * NS_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,N_cost,0,0,check_dtm,NS_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,N_cost,0,0,check_dtm,NS_fac,total_reviewed,returnPath,dnullval); 
           };
           break;
         case 4:
@@ -1186,7 +1186,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * NS_fac;
           }else{      
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,S_cost,0,0,check_dtm,NS_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,S_cost,0,0,check_dtm,NS_fac,total_reviewed,returnPath,dnullval); 
 
           };
 
@@ -1210,7 +1210,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,NW_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,NW_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath,dnullval); 
 
           };
           break;
@@ -1233,7 +1233,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,NE_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,NE_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath,dnullval); 
           };
           break;
         case 7:
@@ -1256,7 +1256,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,SE_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath); 
+              pres_cell->min_cost + costManager(my_cost,SE_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath,dnullval); 
           };
 
           break;
@@ -1280,7 +1280,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,SW_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,SW_cost,0,0,check_dtm,DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 9:
@@ -1303,7 +1303,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * V_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,N_cost,NW_cost,NNW_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,N_cost,NW_cost,NNW_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 10:
@@ -1326,7 +1326,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * V_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,N_cost,NE_cost,NNE_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,N_cost,NE_cost,NNE_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 11:
@@ -1349,7 +1349,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * V_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,S_cost,SE_cost,SSE_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,S_cost,SE_cost,SSE_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 12:
@@ -1372,7 +1372,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * V_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,S_cost,SW_cost,SSW_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,S_cost,SW_cost,SSW_cost,check_dtm,V_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 13:
@@ -1395,7 +1395,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * H_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,W_cost,NW_cost,WNW_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,W_cost,NW_cost,WNW_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 14:
@@ -1418,7 +1418,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * H_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,E_cost,NE_cost,ENE_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,E_cost,NE_cost,ENE_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 15:
@@ -1441,7 +1441,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * H_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,E_cost,SE_cost,ESE_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,E_cost,SE_cost,ESE_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
         case 16:
@@ -1464,7 +1464,7 @@ int main(int argc, char *argv[])
               lambda * fcost_cost * H_DIAG_fac;
           }else{
             min_cost =
-              pres_cell->min_cost + costManager(my_cost,W_cost,SW_cost,WSW_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath);  
+              pres_cell->min_cost + costManager(my_cost,W_cost,SW_cost,WSW_cost,check_dtm,H_DIAG_fac,total_reviewed,returnPath,dnullval);  
           }; 
           break;
       }

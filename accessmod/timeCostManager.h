@@ -148,7 +148,7 @@ double modSwitcher(int mod, double speed, double slope)
  * dist = distance between cells (r.walk :: E,W,S,N_fac or Diag_fac or V_DIAG_fac ) 
  * total_reviewed = if knight's move, 16, else 8. (r.walk total_reviewed)
  *-----------------------------------------------------------------*/
-double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAdj3, double slope, double dist, int total_reviewed,int returnPath)
+double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAdj3, double slope, double dist, int total_reviewed,int returnPath,double dnullval)
 {
 
   /* if return path == true, slope is negative*/
@@ -165,17 +165,14 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
   int speedAdj1 = round(modSpeedAdj1-modAdj1*1000);
   int speedAdj2 = round(modSpeedAdj2-modAdj2*1000);
   int speedAdj3 = round(modSpeedAdj3-modAdj3*1000);
- 
+
   /* output var */
   double speedCurrent;
   double speedFinal;
   double costTimeFinal;
-  int maxVal;
 
   /*maxVal is the maximum time allowed for crossing a cell : 18.2 hour 
    * it's set to avoid to much depth in final map, e.g. in case of dividing by a speed of zero..*/
-
-  maxVal=65535; /* max value in 16 bit map 2^16-1*/
 
   /* get speed for the present cell according to its mode,speed and slope*/
   speedCurrent = modSwitcher(mod,speed,slope);
@@ -195,9 +192,9 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
   };
 
   /* Return cost (s) for the provided distance*/
-  /* To be checked : round value to have total travel cost in integer of a second */
-  costTimeFinal=round((1/(speedFinal/3.6))*dist);
-if(costTimeFinal>maxVal){costTimeFinal=maxVal;};/* max value allowed by 16 bit map (2^16-1)*/
+  costTimeFinal=(1/(speedFinal/3.6))*dist;
+/* if the result is infinity, remove it */
+  if(costTimeFinal == INFINITY) costTimeFinal=dnullval ;
   return costTimeFinal;
 }
 
