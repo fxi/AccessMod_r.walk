@@ -166,6 +166,8 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
   int speedAdj2 = round(modSpeedAdj2-modAdj2*1000);
   int speedAdj3 = round(modSpeedAdj3-modAdj3*1000);
 
+  /*G_message("Mod is %d", mod);*/
+
   /* output var */
   double speedCurrent;
   double speedFinal;

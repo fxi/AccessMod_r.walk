@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.walk
@@ -325,20 +324,20 @@ int main(int argc, char *argv[])
   /*accessmod addition*/
   flag6 = G_define_flag();
   flag6->key = 's';
-  flag6->description =
-    _("Use speed by cells map (km/h) instead of friction map");
+  flag6->description = _("Use speed by cells map (km/h) instead of friction map");
 
   flag7 = G_define_flag();
   flag7->key = 't';
-  flag7->description =
-    _("Inverse slope : cost toward point instead of from point");
-
-
-
-
+  flag7->description = _("Inverse slope : cost toward point instead of from point");
+  
+  
   /* Parse options */
   if (G_parser(argc, argv))
     exit(EXIT_FAILURE);
+
+  /* accessmod addition */
+  speedMap = flag6-> answer;
+  returnPath = flag7->answer;
 
   /* If no outdir is specified, set flag to skip all dir */
   if (opt11->answer != NULL)
@@ -362,6 +361,7 @@ int main(int argc, char *argv[])
     total_reviewed = 16;
   else
     total_reviewed = 8;
+
 
   keep_nulls = flag3->answer;
 
