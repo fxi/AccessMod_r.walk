@@ -172,6 +172,12 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
   double speedCurrent;
   double speedFinal;
   double costTimeFinal;
+  double d2 ;
+  double d4 ;
+
+  /* half distance in km*/
+  d2 = dist/2000 ;
+  d4 = dist/4000 ;
 
   /*maxVal is the maximum time allowed for crossing a cell : 18.2 hour 
    * it's set to avoid to much depth in final map, e.g. in case of dividing by a speed of zero..*/
@@ -183,20 +189,23 @@ double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAd
    * at every step. Caution : in the worst case, all 4 cells have different speed
    * AND mode of transportation. A lot of possibilities. */
   if(total_reviewed==16){
-    speedFinal=(
-        speedCurrent+
-        modSwitcher(modAdj1,speedAdj1,slope)+
-        modSwitcher(modAdj2,speedAdj2,slope)+
-        modSwitcher(modAdj3,speedAdj3,slope)
-        )/4; 
+    costTimeFinal=(
+        1/(speedCurrent/d4)+
+        1/(modSwitcher(modAdj1,speedAdj1,slope)/d4)+
+        1/(modSwitcher(modAdj2,speedAdj2,slope)/d4)+
+        1/(modSwitcher(modAdj3,speedAdj3,slope)/d4)
+        ); 
   }else{
-    speedFinal=(speedCurrent+modSwitcher(modAdj1,speedAdj1,slope))/2; 
+     costTimeFinal=(
+        1/(speedCurrent/d2)+
+        1/(modSwitcher(modAdj1,speedAdj1,slope)/d2)
+        ); 
   };
 
   /* Return cost (s) for the provided distance*/
-  costTimeFinal=(1/(speedFinal/3.6))*dist;
+  /*costTimeFinal=(1/(speedFinal/3.6))*dist;*/
 /* if the result is infinity, remove it */
   if(costTimeFinal == INFINITY) costTimeFinal=dnullval ;
-  return costTimeFinal;
+  return costTimeFinal*3600;
 }
 
