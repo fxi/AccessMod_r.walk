@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.walk
@@ -161,7 +160,7 @@ int main(int argc, char *argv[])
   struct start_pt *pres_stop_pt = NULL;
   struct cc {
     double dtm;		/* elevation model */
-    double cost_in;		/* friction costs */
+    double cost_in;	/* friction costs */
     double cost_out;	/* cumulative costs */
   } costs;
 

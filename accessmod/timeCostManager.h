@@ -148,29 +148,28 @@ double modSwitcher(int mod, double speed, double slope)
  * dist = distance between cells (r.walk :: E,W,S,N_fac or Diag_fac or V_DIAG_fac ) 
  * total_reviewed = if knight's move, 16, else 8. (r.walk total_reviewed)
  *-----------------------------------------------------------------*/
-double costManager(int modSpeed,int modSpeedAdj1,int modSpeedAdj2,int modSpeedAdj3, double slope, double dist, int total_reviewed,int returnPath,double dnullval)
+double costManager(double modSpeed,double modSpeedAdj1,double modSpeedAdj2,double modSpeedAdj3, double slope, double dist, int total_reviewed,int returnPath,double dnullval)
 {
 
   /* if return path == true, slope is negative*/
 
   if(returnPath==1) slope = -slope;
   /* current cell values */
-  int mod       = floor(modSpeed/1000);
-  int speed     = round(modSpeed-mod*1000);
+  int mod       = floor(modSpeed/1e6);
+  double speed  = (modSpeed-(mod*1e6))/1e3;
   /* adjacent cell mod of transportations*/
-  int modAdj1   = floor(modSpeedAdj1/1000);
-  int modAdj2   = floor(modSpeedAdj2/1000);
-  int modAdj3   = floor(modSpeedAdj3/1000);
+  int modAdj1   = floor(modSpeedAdj1/1e6);
+  int modAdj2   = floor(modSpeedAdj2/1e6);
+  int modAdj3   = floor(modSpeedAdj3/1e6);
   /* adjacent cell speed in km/h */
-  int speedAdj1 = round(modSpeedAdj1-modAdj1*1000);
-  int speedAdj2 = round(modSpeedAdj2-modAdj2*1000);
-  int speedAdj3 = round(modSpeedAdj3-modAdj3*1000);
+  double speedAdj1 = (modSpeedAdj1-(modAdj1*1e6))/1e3;
+  double speedAdj2 = (modSpeedAdj2-(modAdj2*1e6))/1e3;
+  double speedAdj3 = (modSpeedAdj3-(modAdj3*1e6))/1e3;
 
   /*G_message("Mod is %d", mod);*/
 
   /* output var */
   double speedCurrent;
-  double speedFinal;
   double costTimeFinal;
   double d2 ;
   double d4 ;
