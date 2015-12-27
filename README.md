@@ -21,10 +21,10 @@ For each class, the base speed on flat surface is added to each categories. E.g.
 
 compilation on linux, e.g.
 ```sh 
-sudo make MODULE_TOPDIR=/usr/local/grass-7.0.0
+sudo make MODULE_TOPDIR=/usr/local/grass-7.0.1
 ```
 
 compilation on mac, e.g. with hombrew grass-70
 ```sh
-make MODULE_TOPDIR=/usr/local/Cellar/grass-70/7.0.0/grass-7.0.0
+make MODULE_TOPDIR=/usr/local/Cellar/grass-70/7.0.1/grass-7.0.1
 ```
