@@ -1,84 +1,47 @@
 #include <stdio.h>
 #include <math.h>
-#include <gsl/gsl_poly.h>
-/* Accesmod custom functions*/
+#include "bicycleSpeed.h"
 
-/*------------------------------------------------------------------
- *               bicycle function                   
- *                                                   
- * see http://www.kreuzotter.de/english/espeed.htm  
- * constant to  put in an external file after developementi
+int debug = 0;
+float cellNum = 0;
+
+/*-------------------------------------------------------------------             
+ *              Bicyle  function 
+ *
+ * Based on 
+ *  speed to watt : http://bikecalculator.com/wattsMetric.html
+ *  watt to speed : http://bikecalculator.com/veloMetric.html
+ *   
  *-----------------------------------------------------------------*/
+double speedBicycle(double speed, double slope)
+{
+  if( debug == 1 ){
+  cellNum = cellNum + 1;
+  }
 
-/* Define constant and variables */
-#define  W 0 /* wind speed */
-#define  Hnn 350 /* Elevation above sea */
-#define  Tc 20  /* external temperature influence air density */
-#define  mbike 12 /* mass of bike */
-#define  mrider 80 /* mass of rider */
-#define  CdA 0.4 /*Effective Drag Area */
-#define  Cr 0.008 /* Rolling resistance coefficient (between 0.0025 and 0.008) */
-#define  CrV 0.2 /* approximated to 0.1 */
-#define  Cm 1.09 /* between 1.03 and 1.09 */
-#define  rho0 1.225 /* air density at sea level, 0°C, kg/m3 */
-#define  p0 101325 /* air pressur at sea level, 0°C,Pa */
-#define  g 9.81 /* m/s2 */
-#define  e 2.71828
+  double speedFinal = bicycleSpeed(speed, slope);
 
+  if( speedFinal >= speed * 2){
+    speedFinal  = speed * 2;
+  }
 
+  if( speedFinal < 0 ){
+    speedFinal  = 0;
+  }
 
-/* flat values (used in formula to get initial power for given speed).*/
-float betaFlat=0;
-float CrVnFlat=CrV;
-float CrVFlat=CrV;
-
-
-
-/* Actual function to get final speed. Speed (expected speed on flat) and slope*/
-double speedBicycle(float speed, float slope)
-{ 
-  double a,b,c,x0,x1,x2 ;/* var in cubic eq..*/
-  int roots; /*ouput roots*/
-  double speedFinal; /*final speed after slope and phys. vars. */
-  float power,P ;/* Power in W */
-  float Frg; /*rol friction*/
-  /* rolling friction on a flat surface */
-  float FrgFlat=g*(mbike+mrider)*(Cr*cos(betaFlat)+sin(betaFlat));
-  speed = speed/3.6; /* value in meter and second*/
-  /* Temperature in deg. kelvin ! */
-  float T=Tc+273.15; 
-
-  /* air density via barometric formula  */
-  float rho=rho0*(373/T)*pow(e,(-rho0*g*(Hnn/p0)));
-  /* power needed for a given base speed*/
-  P = Cm*speed*(CdA*(rho/2)*pow(speed+W,2)+FrgFlat+speed+CrVnFlat);
-  /*slope in radian*/  
-  float beta=atan(slope); 
-  /**/
-  float CrVn=CrV*cos(beta);
-  /* rolling friction */
-  Frg=g*(mbike+mrider)*(Cr*cos(beta)+sin(beta));
-  /* spped cubic function */
-  a=(W+(CrVn/(CdA*rho)));
-  b=pow(W,2)+((2*Frg)/(CdA*rho));
-  c=-((2*P)/(Cm*CdA*rho));
-  /* solve equation with gsl*/
-  roots = gsl_poly_solve_cubic(a,b,c,&x0,&x1,&x2);
-  /* get the absolute speed in km/h. Why does the function return a negative value for negative slope ??  */
-  /*speedFinal=x0*3.6;*/
-  speedFinal=fabs(x0*3.6);
+  if( debug == 1 ){
+  if( cellNum < 100 ){
+     printf("Slope = %lf speed = %lf speed final = %lf \n",slope,speed,speedFinal);
+   }
+  }
+  
   return speedFinal;
-}
-
+};
 /*------------------------------------------------------------------
  *               hiking function
  *
- * Tobler hiking function:
- * tobler is based on a speed of 6 km/h. 
- * here, we want to set another base speed: speed.
- * So we extract coefficient to allow a modified version of tobler's formula.
- * see http://www.kreuzotter.de/english/espeed.htm  
- * constant to  put in an external file after developementi 
+ * Tobler hiking function. Return expected speed under given slope.
+ * based on https://github.com/SrNetoChan/WalkingTime/blob/master/walkingtime.py
  *-----------------------------------------------------------------*/
 double speedWalk(double speed, double slope)
 {
@@ -92,9 +55,7 @@ double speedWalk(double speed, double slope)
 /*-------------------------------------------------------------------             
  *              Motorized vehicle  function 
  *
- * doesnt take in account slope. Expected to applied on road cells !
- * but.. in case of very montaneous roads, with a heavy truck:
- * The bicycle function could apply with other constants of total weight, drag area, resistance,...
+ * doesnt take in account slope.
  *   
  *-----------------------------------------------------------------*/
 double speedMotor(double speed, double slope)
