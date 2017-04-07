@@ -107,7 +107,7 @@
 #include <grass/glocale.h>
 #include "cost.h"
 #include "stash.h"
-#include "timeCostManager.h"
+#include "accessmod/c/timeCostManager.h"
 /* note : need some line in Makefile for timeCostManager:
  * GSL_LIB = `gsl-config --libs`
  * LIBES = $(SEGMENTLIB) $(VECTORLIB) $(RASTERLIB) $(GISLIB) $(MATHLIB) $(GSL_LIB)
