@@ -9,7 +9,7 @@ In this version, the module takes speed map as friction map input.
 The speed map should be reclassed in three main categories, depending of the mode of transportation :
 
 - 1000 : walking  (tobler's hiking formula) 
-- 2000 : bicycling (kreuzotter formula. Takes in account elevation, air resistance, weight... and much more) 
+- 2000 : bicycling (formula from js app found on http://bikecalculator.com/wattsMetric.html)
 - 3000 : other (not influenced by the slope) 
 
 For each class, the base speed on flat surface is added to each categories. E.g.
