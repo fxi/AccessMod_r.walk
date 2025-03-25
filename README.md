@@ -1,4 +1,11 @@
 # r.walk.accessmod
+---
+
+[NOTE]
+This repository is archived, as it was merged into the main [repo](https://github.com/unige-geohealth/accessmod/tree/main/docker/alpine_base/modules/r.walk.accessmod) and remain there for publictions references. 
+
+---
+
 
 This is an attempt to modify GRASS gis `r.walk` to accept other anisotropic formulas : tobler hiking function and bicycle function. This is an early experimental work. 
 
